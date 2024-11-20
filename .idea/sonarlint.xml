@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SonarLintProjectSettings">
+    <option name="moduleMapping">
+      <map>
+        <entry key="security-data" value="data (1)" />
+        <entry key="security-resource-server-starter" value="security-resource-server-starter (1)" />
+        <entry key="security-starter" value="security-resource-server-starter (2)" />
+      </map>
+    </option>
+  </component>
+</project>

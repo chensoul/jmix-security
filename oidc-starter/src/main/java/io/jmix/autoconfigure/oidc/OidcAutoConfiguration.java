@@ -1,0 +1,130 @@
+/*
+ * Copyright 2020 Haulmont.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.jmix.autoconfigure.oidc;
+
+import io.jmix.security.JmixSecurityFilterChainOrder;
+import io.jmix.oidc.OidcConfiguration;
+import io.jmix.oidc.OidcProperties;
+import io.jmix.security.util.RoleGrantedAuthorityUtils;
+import io.jmix.oidc.claimsmapper.BaseClaimsRolesMapper;
+import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import io.jmix.oidc.jwt.JmixJwtAuthenticationConverter;
+import io.jmix.oidc.resourceserver.OidcResourceServerEventSecurityFilter;
+import io.jmix.oidc.userinfo.DefaultJmixOidcUserService;
+import io.jmix.oidc.userinfo.JmixOidcUserService;
+import io.jmix.oidc.usermapper.DefaultOidcUserMapper;
+import io.jmix.oidc.usermapper.OidcUserMapper;
+import io.jmix.security.util.JmixHttpSecurityUtils;
+import io.jmix.securityresourceserver.requestmatcher.CompositeResourceServerRequestMatcherProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+@AutoConfiguration
+@Import({OidcConfiguration.class})
+@ConditionalOnProperty(name = "jmix.oidc.use-default-configuration", matchIfMissing = true)
+public class OidcAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean(JmixOidcUserService.class)
+    public JmixOidcUserService oidcUserService(OidcUserMapper oidcUserMapper) {
+        return new DefaultJmixOidcUserService(oidcUserMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ClaimsRolesMapper.class)
+    public ClaimsRolesMapper claimsRoleMapper(
+                                              RoleGrantedAuthorityUtils roleGrantedAuthorityUtils) {
+        BaseClaimsRolesMapper mapper = new BaseClaimsRolesMapper(roleGrantedAuthorityUtils);
+        return mapper;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(OidcUserMapper.class)
+    public OidcUserMapper userMapper(ClaimsRolesMapper claimsRolesMapper) {
+        return new DefaultOidcUserMapper(claimsRolesMapper);
+    }
+
+//    /**
+//     * Configures FlowUI views protection.
+//     */
+//    @EnableWebSecurity
+//    @ConditionalOnProperty(value = "jmix.oidc.use-default-ui-configuration", havingValue = "true", matchIfMissing = true)
+//    public static class DefaulOidcVaadinWebSecurity extends OidcVaadinWebSecurity {}
+
+    /**
+     * Configures API endpoints (e.g. REST API) protection. Invocations to these resources require a bearer token
+     * in the request header.
+     */
+    @EnableWebSecurity
+    @ConditionalOnProperty(value = "jmix.oidc.use-default-jwt-configuration", havingValue = "true", matchIfMissing = true)
+    public static class OAuth2ResourceServerConfiguration {
+
+        public static final String SECURITY_CONFIGURER_QUALIFIER = "oidc-resource-server";
+
+        @Bean("oidc_JwtSecurityFilterChain")
+        @Order(JmixSecurityFilterChainOrder.OIDC_RESOURCE_SERVER)
+        public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                       JmixJwtAuthenticationConverter jmixJwtAuthenticationConverter,
+                                                       ApplicationEventPublisher applicationEventPublisher,
+                                                       CompositeResourceServerRequestMatcherProvider securityMatcherProvider) throws Exception {
+            RequestMatcher authenticatedRequestMatcher = securityMatcherProvider.getAuthenticatedRequestMatcher();
+            RequestMatcher anonymousRequestMatcher = securityMatcherProvider.getAnonymousRequestMatcher();
+            RequestMatcher securityMatcher = new OrRequestMatcher(authenticatedRequestMatcher, anonymousRequestMatcher);
+            http
+                    .securityMatcher(securityMatcher)
+                    .authorizeHttpRequests(authorize -> {
+                        authorize
+                                .requestMatchers(anonymousRequestMatcher).permitAll()
+                                .requestMatchers(authenticatedRequestMatcher).authenticated();
+                    })
+                    .oauth2ResourceServer(resourceServer -> {
+                        resourceServer.jwt(jwt -> {
+                            jwt.jwtAuthenticationConverter(jmixJwtAuthenticationConverter);
+                        });
+                    })
+                    .csrf(csrf -> csrf.disable())
+                    .cors(Customizer.withDefaults());
+
+            JmixHttpSecurityUtils.configureAnonymous(http);
+            JmixHttpSecurityUtils.configureFrameOptions(http);
+
+            OidcResourceServerEventSecurityFilter resourceServerEventSecurityFilter =
+                    new OidcResourceServerEventSecurityFilter(applicationEventPublisher);
+            http.addFilterBefore(resourceServerEventSecurityFilter, AuthorizationFilter.class);
+            JmixHttpSecurityUtils.applySecurityConfigurersWithQualifier(http, SECURITY_CONFIGURER_QUALIFIER);
+            return http.build();
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(JmixJwtAuthenticationConverter.class)
+        public JmixJwtAuthenticationConverter jmixJwtAuthenticationConverter(OidcUserMapper oidcUserMapper, OidcProperties oidcProperties) {
+            return new JmixJwtAuthenticationConverter(oidcUserMapper, oidcProperties);
+        }
+    }
+}
