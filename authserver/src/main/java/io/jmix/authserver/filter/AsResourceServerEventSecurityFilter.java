@@ -19,10 +19,10 @@ package io.jmix.authserver.filter;
 import com.google.common.base.Strings;
 import io.jmix.authserver.event.AsResourceServerAfterInvocationEvent;
 import io.jmix.authserver.event.AsResourceServerBeforeInvocationEvent;
-import io.jmix.security.AccessDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -52,7 +52,7 @@ public class AsResourceServerEventSecurityFilter extends OncePerRequestFilter {
         //todo enable REST request logging and locale parsing
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (applicationEventPublisher != null && authentication != null) {
+            if (applicationEventPublisher!=null && authentication!=null) {
                 AsResourceServerBeforeInvocationEvent asResourceServerBeforeInvocationEvent = new AsResourceServerBeforeInvocationEvent(authentication, request, response);
                 applicationEventPublisher.publishEvent(asResourceServerBeforeInvocationEvent);
 

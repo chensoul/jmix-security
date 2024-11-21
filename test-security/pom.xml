@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>test-sample</artifactId>
+    <artifactId>test-security</artifactId>
 
     <dependencies>
         <dependency>

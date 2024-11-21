@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.jmix.security.aspect;
+package io.jmix.security.authentication;
 
-import org.springframework.security.core.Authentication;
-
+import java.util.concurrent.Callable;
 import org.springframework.lang.Nullable;
+import org.springframework.security.core.Authentication;
 
 /**
  * Provides ad-hoc authentication, i.e. allows you to execute code on behalf of the 'system' or a specified user.
@@ -39,9 +39,9 @@ import org.springframework.lang.Nullable;
  *     }
  * </pre>
  *
- * @see #withSystem(AuthenticatedOperation)
+ * @see #withSystem(Callable)
  * @see #runWithSystem(Runnable)
- * @see #withUser(String, AuthenticatedOperation)
+ * @see #withUser(String, Callable)
  * @see #runWithUser(String, Runnable)
  * @see #begin()
  * @see #begin(String)
@@ -81,7 +81,7 @@ public interface SystemAuthenticator {
      * @param operation code to execute
      * @return result of the execution
      */
-    <T> T withUser(@Nullable String login, AuthenticatedOperation<T> operation);
+    <T> T withUser(@Nullable String login, Callable<T> operation);
 
     /**
      * Execute code on behalf of the specified user.
@@ -97,7 +97,7 @@ public interface SystemAuthenticator {
      * @param operation code to execute
      * @return result of the execution
      */
-    <T> T withSystem(AuthenticatedOperation<T> operation);
+    <T> T withSystem(Callable<T> operation);
 
     /**
      * Execute code as the 'system' user.
@@ -106,12 +106,4 @@ public interface SystemAuthenticator {
      */
     void runWithSystem(Runnable operation);
 
-    /**
-     * Operation with a result to be used in {@link #withSystem(AuthenticatedOperation)}
-     * and {@link #withUser(String, AuthenticatedOperation)}.
-     */
-    interface AuthenticatedOperation<T> {
-        @Nullable
-        T call();
-    }
 }

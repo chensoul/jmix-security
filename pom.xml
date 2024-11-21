@@ -20,6 +20,12 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+    </dependencies>
 
     <modules>
         <module>core</module>
@@ -34,12 +40,13 @@
         <module>authserver-starter</module>
         <module>oidc</module>
         <module>oidc-starter</module>
-        <module>test-sample</module>
         <module>localfs</module>
         <module>localfs-starter</module>
         <module>awsfs</module>
         <module>awsfs-starter</module>
         <module>email</module>
         <module>email-starter</module>
+
+        <module>test-security</module>
     </modules>
 </project>

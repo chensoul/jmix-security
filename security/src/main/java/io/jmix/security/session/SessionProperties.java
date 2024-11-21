@@ -19,7 +19,7 @@ package io.jmix.security.session;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@ConfigurationProperties(prefix = "jmix.core.session")
+@ConfigurationProperties(prefix = "jmix.security.session")
 public class SessionProperties {
 
     int maximumSessionsPerUser;

@@ -16,28 +16,20 @@
 
 package io.jmix.security.rememberme;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.DefaultValue;
+import static org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices.DEFAULT_PARAMETER;
+import static org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices.SPRING_SECURITY_REMEMBER_ME_COOKIE_KEY;
+import static org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices.TWO_WEEKS_S;
 
-@ConfigurationProperties(prefix = "jmix.core.rememberme")
+@Data
+@ConfigurationProperties(prefix = "jmix.security.rememberme")
 public class RememberMeProperties {
 
-    String key;
+    String key = SPRING_SECURITY_REMEMBER_ME_COOKIE_KEY;
 
-    int tokenValiditySeconds;
+    String parameter = DEFAULT_PARAMETER;
 
-    public RememberMeProperties(@DefaultValue("Z9w8F82fGKmJHE7H") String key,
-                                //30 days by default
-                                @DefaultValue("2592000") int tokenValiditySeconds) {
-        this.key = key;
-        this.tokenValiditySeconds = tokenValiditySeconds;
-    }
+    int tokenValiditySeconds = TWO_WEEKS_S;
 
-    public String getKey() {
-        return key;
-    }
-
-    public int getTokenValiditySeconds() {
-        return tokenValiditySeconds;
-    }
 }

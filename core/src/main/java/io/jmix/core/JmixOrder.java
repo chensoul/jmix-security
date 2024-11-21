@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.jmix.security;
+package io.jmix.core;
 
 /**
  * Defines constants for higher and lower precedence for {@link org.springframework.core.Ordered} or

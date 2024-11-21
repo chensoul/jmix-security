@@ -19,6 +19,7 @@ package io.jmix.security.authentication.provider;
 import io.jmix.security.check.PostAuthenticationChecks;
 import io.jmix.security.check.PreAuthenticationChecks;
 import io.jmix.security.user.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,32 +33,23 @@ import java.util.List;
  * Class returns a collection of "standard" providers that may be used in AuthenticationManagers created in different
  * security configurations.
  */
-@Component("sec_StandardAuthenticationProvidersProducer")
-public class StandardAuthenticationProvidersProducer {
+@RequiredArgsConstructor
+public class StandardAuthenticationProviderProducer {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final PreAuthenticationChecks preAuthenticationChecks;
+    private final PostAuthenticationChecks postAuthenticationChecks;
 
-    private PasswordEncoder passwordEncoder;
-
-    private PreAuthenticationChecks preAuthenticationChecks;
-
-    private PostAuthenticationChecks postAuthenticationChecks;
-
-    public StandardAuthenticationProvidersProducer(UserRepository userRepository,
-                                                   PasswordEncoder passwordEncoder,
-                                                   @Qualifier("sec_PreAuthenticationChecks") PreAuthenticationChecks preAuthenticationChecks,
-                                                   @Qualifier("sec_PostAuthenticationChecks") PostAuthenticationChecks postAuthenticationChecks) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.preAuthenticationChecks = preAuthenticationChecks;
-        this.postAuthenticationChecks = postAuthenticationChecks;
-    }
-
-    public List<AuthenticationProvider> getStandardProviders() {
+    public List<AuthenticationProvider> getAuthenticationProviders() {
         List<AuthenticationProvider> providers = new ArrayList<>();
+        //系统用户登录
         providers.add(new SystemAuthenticationProvider(userRepository));
+
+        //模拟其他用户登录
         providers.add(new SubstitutedUserAuthenticationProvider(userRepository));
 
+        //普通用户常规登录
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(userRepository);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);

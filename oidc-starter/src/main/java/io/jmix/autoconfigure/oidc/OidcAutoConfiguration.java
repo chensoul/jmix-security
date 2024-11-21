@@ -16,7 +16,7 @@
 
 package io.jmix.autoconfigure.oidc;
 
-import io.jmix.security.JmixSecurityFilterChainOrder;
+import io.jmix.security.JmixSecurityFilterOrder;
 import io.jmix.oidc.OidcConfiguration;
 import io.jmix.oidc.OidcProperties;
 import io.jmix.security.util.RoleGrantedAuthorityUtils;
@@ -88,7 +88,7 @@ public class OidcAutoConfiguration {
         public static final String SECURITY_CONFIGURER_QUALIFIER = "oidc-resource-server";
 
         @Bean("oidc_JwtSecurityFilterChain")
-        @Order(JmixSecurityFilterChainOrder.OIDC_RESOURCE_SERVER)
+        @Order(JmixSecurityFilterOrder.OIDC_RESOURCE_SERVER)
         public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                        JmixJwtAuthenticationConverter jmixJwtAuthenticationConverter,
                                                        ApplicationEventPublisher applicationEventPublisher,

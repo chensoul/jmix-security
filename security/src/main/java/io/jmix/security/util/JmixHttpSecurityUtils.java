@@ -16,9 +16,8 @@
 
 package io.jmix.security.util;
 
-import io.jmix.core.CoreProperties;
-import io.jmix.security.user.UserRepository;
 import io.jmix.security.session.SessionProperties;
+import io.jmix.security.user.UserRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -52,13 +51,10 @@ public class JmixHttpSecurityUtils {
      */
     public static void configureAnonymous(HttpSecurity http) throws Exception {
         ApplicationContext applicationContext = http.getSharedObject(ApplicationContext.class);
-
-        CoreProperties coreProperties = applicationContext.getBean(CoreProperties.class);
         UserRepository userRepository = applicationContext.getBean(UserRepository.class);
 
         http.anonymous(anonymousConfigurer -> {
-            anonymousConfigurer.key(coreProperties.getAnonymousAuthenticationTokenKey());
-            anonymousConfigurer.principal(userRepository.getAnonymousUser());
+            anonymousConfigurer.key("anonymous-key").principal(userRepository.getAnonymousUser());
             Collection<? extends GrantedAuthority> anonymousAuthorities = userRepository.getAnonymousUser().getAuthorities();
             if (!anonymousAuthorities.isEmpty()) {
                 anonymousConfigurer.authorities(new ArrayList<>(userRepository.getAnonymousUser().getAuthorities()));

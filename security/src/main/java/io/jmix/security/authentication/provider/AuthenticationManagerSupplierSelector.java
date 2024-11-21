@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package io.jmix.security.authentication;
+package io.jmix.security.authentication.provider;
 
 import org.springframework.security.authentication.AuthenticationManager;
 
 /**
- * Implementations of the interface are responsible for constructing a global {@link AuthenticationManager}.
- * <p>
- * Several add-ons may provide an instance of {@link AddonAuthenticationManagerSupplier}. The AuthenticationManager
- * produced by the instance with the highest order will be used in the application as a global AuthenticationManager.
+ * Interface is responsible for providing an instance of global {@link AuthenticationManager}. It iterates over all
+ * registered {@link AuthenticationManagerSupplier} and returns an AuthenticationManager provided by the supplier
+ * with the highest order.
  *
  * @see AuthenticationManagerSupplier
  */
-public interface AddonAuthenticationManagerSupplier {
+public interface AuthenticationManagerSupplierSelector {
 
-    /**
-     * Returns a global AuthenticationManager instance provided by an add-on.
-     *
-     * @return authentication manager
-     */
-    AuthenticationManager getAuthenticationManager();
+    AuthenticationManagerSupplier getAuthenticationManagerSupplier();
 
 }

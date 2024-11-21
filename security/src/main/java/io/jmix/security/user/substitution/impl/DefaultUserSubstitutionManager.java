@@ -14,40 +14,35 @@
  * limitations under the License.
  */
 
-package io.jmix.security.user.substitution;
+package io.jmix.security.user.substitution.impl;
 
 import io.jmix.security.authentication.CurrentAuthentication;
 import io.jmix.security.authentication.token.SubstitutedUserAuthenticationToken;
 import io.jmix.security.user.UserRepository;
+import io.jmix.security.user.substitution.UserSubstitution;
+import io.jmix.security.user.substitution.UserSubstitutionManager;
+import io.jmix.security.user.substitution.UserSubstitutionProvider;
 import io.jmix.security.user.substitution.event.UserSubstitutedEvent;
 import io.jmix.security.util.SecurityContextHelper;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
-@Component("core_UserSubstitutionManager")
-public class UserSubstitutionManagerImpl implements UserSubstitutionManager {
-
-    @Autowired(required = false)
-    protected UserRepository userRepository;
-
-    @Autowired
-    protected CurrentAuthentication currentAuthentication;
-
-    @Autowired(required = false)
-    protected AuthenticationManager authenticationManager;
-
-    @Autowired
-    protected ApplicationEventPublisher eventPublisher;
-
-    @Autowired
-    protected Collection<UserSubstitutionProvider> userSubstitutionProviders;
+@RequiredArgsConstructor
+public class DefaultUserSubstitutionManager implements UserSubstitutionManager {
+    @Nullable
+    protected final UserRepository userRepository;
+    @Nullable
+    protected final AuthenticationManager authenticationManager;
+    protected final CurrentAuthentication currentAuthentication;
+    protected final ApplicationEventPublisher eventPublisher;
+    protected final Collection<UserSubstitutionProvider> userSubstitutionProviders;
 
 
     @Override
@@ -77,7 +72,6 @@ public class UserSubstitutionManagerImpl implements UserSubstitutionManager {
      * @throws IllegalArgumentException if current user isn't allowed to substitute user with specified name
      */
     public void substituteUser(String substitutedUserName) {
-
         if (!canSubstitute(currentAuthentication.getUser().getUsername(), substitutedUserName)) {
             throw new IllegalArgumentException(
                     String.format("User '%s' cannot substitute '%s'",

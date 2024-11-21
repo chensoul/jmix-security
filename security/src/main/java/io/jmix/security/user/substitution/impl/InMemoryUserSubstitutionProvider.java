@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package io.jmix.security.user.substitution;
+package io.jmix.security.user.substitution.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.jmix.security.user.substitution.UserSubstitution;
+import io.jmix.security.user.substitution.UserSubstitutionProvider;
 import io.jmix.security.user.substitution.event.UserRemovedEvent;
 import io.jmix.security.user.substitution.event.UserSubstitutionsChangedEvent;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -31,14 +34,13 @@ import java.util.stream.Collectors;
 /**
  * A {@link UserSubstitutionProvider} that stores {@link UserSubstitution} in memory.
  */
-@Component("core_InMemoryUserSubstitutionProvider")
+@RequiredArgsConstructor
 public class InMemoryUserSubstitutionProvider implements UserSubstitutionProvider {
 
     //the key of the map is UserSubstitution.username
     protected Multimap<String, UserSubstitution> userSubstitutions = HashMultimap.create();
 
-    @Autowired
-    protected ApplicationEventPublisher eventPublisher;
+    protected final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Collection<UserSubstitution> getUserSubstitutions(String username, Date date) {

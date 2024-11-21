@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package io.jmix.security.user.substitution;
+package io.jmix.security.user.substitution.impl;
 
 import io.jmix.security.authentication.CurrentAuthentication;
 import io.jmix.security.authentication.token.SubstitutedUserAuthenticationToken;
+import io.jmix.security.user.substitution.CurrentUserSubstitution;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-@Component("sec_CurrentUserSubstitution")
-public class CurrentUserSubstitutionImpl implements CurrentUserSubstitution {
+@RequiredArgsConstructor
+public class DefaultCurrentUserSubstitution implements CurrentUserSubstitution {
 
-    protected CurrentAuthentication currentAuthentication;
+    protected final CurrentAuthentication currentAuthentication;
 
-    @Autowired
-    public CurrentUserSubstitutionImpl(CurrentAuthentication currentAuthentication) {
-        this.currentAuthentication = currentAuthentication;
-    }
 
     @Override
     public UserDetails getAuthenticatedUser() {
@@ -58,6 +56,6 @@ public class CurrentUserSubstitutionImpl implements CurrentUserSubstitution {
     @Override
     public UserDetails getEffectiveUser() {
         UserDetails substitutedUser = getSubstitutedUser();
-        return substitutedUser != null ? substitutedUser : getAuthenticatedUser();
+        return substitutedUser!=null ? substitutedUser:getAuthenticatedUser();
     }
 }

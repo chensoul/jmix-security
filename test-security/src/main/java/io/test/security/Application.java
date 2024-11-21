@@ -1,7 +1,7 @@
-package io.test.authserver;
+package io.test.security;
 
 import com.google.common.base.Strings;
-import io.jmix.security.CoreSecurityConfiguration;
+import io.jmix.security.annotation.Authenticated;
 import io.jmix.security.authentication.CurrentAuthentication;
 import io.jmix.security.user.InMemoryUserRepository;
 import io.jmix.security.user.UserRepository;
@@ -14,7 +14,6 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -31,34 +30,31 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableScheduling
 @SpringBootApplication
 @RestController
-public class AuthserverApplication {
+public class Application {
     @Autowired
     private Environment environment;
     @Autowired
     private CurrentAuthentication currentAuthentication;
 
     public static void main(String[] args) {
-        SpringApplication.run(AuthserverApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
     @EventListener
     public void printApplicationUrl(final ApplicationStartedEvent event) {
-        LoggerFactory.getLogger(AuthserverApplication.class).info("Application started at "
+        LoggerFactory.getLogger(Application.class).info("Application started at "
                 + "http://localhost:"
                 + environment.getProperty("server.port", "8080")
                 + Strings.nullToEmpty(environment.getProperty("server.servlet.context-path")));
     }
 
-    @EnableGlobalMethodSecurity(prePostEnabled = true)
     @EnableWebSecurity
-    static class SecurityConfiguration extends CoreSecurityConfiguration {
-        @Override
+    static class SecurityConfiguration {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http.authorizeHttpRequests(auth -> auth.requestMatchers("/anonymous").anonymous());
-            return super.securityFilterChain(http);
+            return http.build();
         }
 
-        @Override
         public UserRepository userRepository() {
             InMemoryUserRepository userRepository = new InMemoryUserRepository();
             userRepository.addUser(User.builder()
@@ -70,8 +66,19 @@ public class AuthserverApplication {
         }
     }
 
+    @Authenticated
+//    @Scheduled(fixedRate = 10000L)
+    public void test() {
+        LoggerFactory.getLogger(Application.class).info("user: {}", currentAuthentication.getAuthentication().getName());
+    }
+
     @GetMapping("/")
     public String index() {
         return "hello";
+    }
+
+    @GetMapping("/anonymous")
+    public String anonymous() {
+        return "anonymous: " + currentAuthentication.getAuthentication().getName();
     }
 }

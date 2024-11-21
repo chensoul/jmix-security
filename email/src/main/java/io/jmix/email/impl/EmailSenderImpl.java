@@ -199,10 +199,6 @@ public class EmailSenderImpl implements EmailSender {
             contentId = attachmentName;
         }
 
-        if (StringUtils.isNotEmpty(coreProperties.getWebHostName())) {
-            contentId += "@" + coreProperties.getWebHostName();
-        }
-
         return contentId;
     }
 

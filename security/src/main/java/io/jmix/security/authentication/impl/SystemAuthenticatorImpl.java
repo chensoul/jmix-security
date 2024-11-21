@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package io.jmix.security.aspect;
+package io.jmix.security.authentication.impl;
 
 import com.google.common.base.Strings;
-import io.jmix.security.JmixOrder;
+import io.jmix.core.JmixOrder;
+import io.jmix.security.authentication.SystemAuthenticatorSupport;
+import io.jmix.security.authentication.SystemAuthenticator;
 import io.jmix.security.authentication.token.SystemAuthenticationToken;
 import io.jmix.security.util.SecurityContextHelper;
-import io.jmix.security.logging.LogMdc;
+import java.util.concurrent.Callable;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -34,18 +36,17 @@ import org.springframework.stereotype.Component;
 
 import org.springframework.lang.Nullable;
 
-@Component("core_SystemAuthenticator")
+@RequiredArgsConstructor
 public class SystemAuthenticatorImpl extends SystemAuthenticatorSupport implements SystemAuthenticator {
 
     private static final Logger log = LoggerFactory.getLogger(SystemAuthenticatorImpl.class);
 
-    @Autowired(required = false)
-    protected AuthenticationManager authenticationManager;
+    protected final AuthenticationManager authenticationManager;
 
     @EventListener
     @Order(JmixOrder.HIGHEST_PRECEDENCE + 5)
     protected void beginServerSessionOnStartup(ContextRefreshedEvent event) {
-        if (authenticationManager != null) {
+        if (authenticationManager!=null) {
             begin();
         }
     }
@@ -53,14 +54,14 @@ public class SystemAuthenticatorImpl extends SystemAuthenticatorSupport implemen
     @EventListener
     @Order(JmixOrder.LOWEST_PRECEDENCE - 5)
     protected void endServerSessionOnStartup(ContextRefreshedEvent event) {
-        if (authenticationManager != null) {
+        if (authenticationManager!=null) {
             end();
         }
     }
 
     @Override
     public Authentication begin(@Nullable String login) {
-        if (authenticationManager == null) {
+        if (authenticationManager==null) {
             throw new IllegalStateException("AuthenticationManager is not defined");
         }
 
@@ -69,11 +70,11 @@ public class SystemAuthenticatorImpl extends SystemAuthenticatorSupport implemen
             Authentication authentication;
 
             if (!Strings.isNullOrEmpty(login)) {
-                log.trace("Authenticating as {}", login);
+                log.info("Authenticating as {}", login);
                 Authentication authToken = new SystemAuthenticationToken(login);
                 authentication = authenticationManager.authenticate(authToken);
             } else {
-                log.trace("Authenticating as system");
+                log.info("Authenticating as system");
                 Authentication authToken = new SystemAuthenticationToken(null);
                 authentication = authenticationManager.authenticate(authToken);
             }
@@ -81,7 +82,6 @@ public class SystemAuthenticatorImpl extends SystemAuthenticatorSupport implemen
             SecurityContextHelper.setAuthentication(authentication);
 
             return authentication;
-
         } catch (AuthenticationException e) {
             pollAuthentication();
             throw e;
@@ -98,14 +98,15 @@ public class SystemAuthenticatorImpl extends SystemAuthenticatorSupport implemen
         log.trace("Set previous Authentication");
         Authentication previous = pollAuthentication();
         SecurityContextHelper.setAuthentication(previous);
-        LogMdc.setup(previous);
     }
 
     @Override
-    public <T> T withUser(@Nullable String login, AuthenticatedOperation<T> operation) {
+    public <T> T withUser(@Nullable String login, Callable<T> operation) {
         begin(login);
         try {
             return operation.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             end();
         }
@@ -122,10 +123,12 @@ public class SystemAuthenticatorImpl extends SystemAuthenticatorSupport implemen
     }
 
     @Override
-    public <T> T withSystem(AuthenticatedOperation<T> operation) {
+    public <T> T withSystem(Callable<T> operation) {
         begin();
         try {
             return operation.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             end();
         }

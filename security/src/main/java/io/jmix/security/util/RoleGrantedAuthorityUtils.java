@@ -16,10 +16,7 @@
 
 package io.jmix.security.util;
 
-import io.jmix.security.SecurityProperties;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.config.core.GrantedAuthorityDefaults;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -28,45 +25,12 @@ import org.springframework.stereotype.Component;
  * Utility class for working with Jmix-related {@link GrantedAuthority}. Use this class when you need to
  * programmatically create an instance of the granted authority for resource or row-level role.
  */
+@RequiredArgsConstructor
 @Component("sec_RoleGrantedAuthorityUtils")
 public class RoleGrantedAuthorityUtils {
-
-    private GrantedAuthorityDefaults grantedAuthorityDefaults;
-    private final SecurityProperties securityProperties;
     private String defaultRolePrefix = "ROLE_";
 
-    public RoleGrantedAuthorityUtils(SecurityProperties securityProperties) {
-        this.securityProperties = securityProperties;
-    }
-
-    @Autowired(required = false)
-    public void setGrantedAuthorityDefaults(GrantedAuthorityDefaults grantedAuthorityDefaults) {
-        this.grantedAuthorityDefaults = grantedAuthorityDefaults;
-    }
-
-    @PostConstruct
-    public void init() {
-        if (grantedAuthorityDefaults != null) {
-            defaultRolePrefix = grantedAuthorityDefaults.getRolePrefix();
-        }
-    }
-
-    public GrantedAuthority createRowLevelRoleGrantedAuthority(String rowLevelRoleCode) {
-        return new SimpleGrantedAuthority(getDefaultRowLevelRolePrefix() + rowLevelRoleCode);
-    }
-
-    /**
-     * Returns the role prefix for the resource role. It is taken from the {@link GrantedAuthorityDefaults} if the bean
-     * of this type is defined. Otherwise, the default ROLE_ value is returned.
-     */
-    public String getDefaultRolePrefix() {
-        return defaultRolePrefix;
-    }
-
-    /**
-     * Returns the role prefix for the row-level role (ROW_LEVEL_ROLE_ by default)
-     */
-    public String getDefaultRowLevelRolePrefix() {
-        return securityProperties.getDefaultRowLevelRolePrefix();
+    public GrantedAuthority createRowGrantedAuthority(String rowLevelRoleCode) {
+        return new SimpleGrantedAuthority(defaultRolePrefix + rowLevelRoleCode);
     }
 }

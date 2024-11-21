@@ -61,17 +61,11 @@ public class TokenIntrospectorRolesHelper {
 
         List<GrantedAuthority> resourceRoleAuthorities = roleAssignments.stream()
                 .flatMap(roleAssignment -> roleAssignment.resourceRoles().stream())
-                .map(roleCode -> roleGrantedAuthorityUtils.createRowLevelRoleGrantedAuthority(roleCode))
-                .toList();
-
-        List<GrantedAuthority> rowLevelRolesAuthorities = roleAssignments.stream()
-                .flatMap(roleAssignment -> roleAssignment.rowLevelRoles().stream())
-                .map(roleCode -> roleGrantedAuthorityUtils.createRowLevelRoleGrantedAuthority(roleCode))
+                .map(roleCode -> roleGrantedAuthorityUtils.createRowGrantedAuthority(roleCode))
                 .toList();
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.addAll(resourceRoleAuthorities);
-        authorities.addAll(rowLevelRolesAuthorities);
 
         return authorities;
     }

@@ -16,35 +16,34 @@
 
 package io.jmix.security.authentication.impl;
 
-import io.jmix.security.authentication.AddonAuthenticationManagerSupplier;
-import io.jmix.security.authentication.provider.StandardAuthenticationProvidersProducer;
+import io.jmix.security.authentication.provider.AuthenticationManagerSupplier;
+import io.jmix.security.authentication.provider.StandardAuthenticationProviderProducer;
+import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
 
-import java.util.List;
-
 /**
  * The default AddonAuthenticationManagerSupplier supplier that provides AuthenticationManager used by basic
  * application.
  */
-public class StandardAuthenticationManagerSupplier implements AddonAuthenticationManagerSupplier {
+public class StandardAuthenticationManagerSupplier implements AuthenticationManagerSupplier {
 
-    protected StandardAuthenticationProvidersProducer providersProducer;
+    protected StandardAuthenticationProviderProducer providerProducer;
 
     protected ApplicationEventPublisher publisher;
 
-    public StandardAuthenticationManagerSupplier(StandardAuthenticationProvidersProducer providersProducer,
+    public StandardAuthenticationManagerSupplier(StandardAuthenticationProviderProducer providerProducer,
                                                  ApplicationEventPublisher publisher) {
-        this.providersProducer = providersProducer;
+        this.providerProducer = providerProducer;
         this.publisher = publisher;
     }
 
     @Override
     public AuthenticationManager getAuthenticationManager() {
-        List<AuthenticationProvider> providers = providersProducer.getStandardProviders();
+        List<AuthenticationProvider> providers = providerProducer.getAuthenticationProviders();
         ProviderManager providerManager = new ProviderManager(providers);
         providerManager.setAuthenticationEventPublisher(new DefaultAuthenticationEventPublisher(publisher));
         return providerManager;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Haulmont.
+ * Copyright 2020 Haulmont.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@
 package io.test.security.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Version;
 import java.util.Date;
 import java.util.UUID;
@@ -32,51 +29,40 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
 @Data
-@Table(name = "SEC_USER_SUBSTITUTION")
-@Entity
-public class UserSubstitution {
+@MappedSuperclass
+public class BaseEntity {
     @Id
-    @Column(name = "ID", nullable = false)
-    private UUID id;
+    @Column(name = "ID")
+    protected UUID id;
 
     @Version
     @Column(name = "VERSION", nullable = false)
-    private Integer version;
+    protected Integer version;
 
     @CreatedDate
     @Column(name = "CREATE_TS")
-    private Date createTs;
+    protected Date createTs;
 
     @CreatedBy
     @Column(name = "CREATED_BY", length = 50)
-    private String createdBy;
+    protected String createdBy;
 
     @LastModifiedDate
     @Column(name = "UPDATE_TS")
-    private Date updateTs;
+    protected Date updateTs;
 
     @LastModifiedBy
     @Column(name = "UPDATED_BY", length = 50)
-    private String updatedBy;
+    protected String updatedBy;
 
     @Column(name = "DELETE_TS")
-    private Date deleteTs;
+    protected Date deleteTs;
 
     @Column(name = "DELETED_BY", length = 50)
     protected String deletedBy;
 
-    @Column(name = "USERNAME")
-    private String username;
-
-    @Column(name = "SUBSTITUTED_USERNAME")
-    private String substitutedUsername;
-
-    @Column(name = "START_DATE")
-    @Temporal(TemporalType.DATE)
-    private Date startDate;
-
-    @Temporal(TemporalType.DATE)
-    @Column(name = "END_DATE")
-    private Date endDate;
+    public BaseEntity() {
+        this.id = UUID.randomUUID();
+    }
 
 }

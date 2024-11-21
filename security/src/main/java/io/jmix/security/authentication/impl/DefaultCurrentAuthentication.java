@@ -28,27 +28,20 @@ import io.jmix.security.util.SecurityContextHelper;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-@Component("core_CurrentAuthentication")
-public class CurrentAuthenticationImpl implements CurrentAuthentication {
-
-    @Autowired(required = false)
-    private List<AuthenticationResolver> authenticationResolvers;
-
-    @Autowired(required = false)
-    private List<AuthenticationPrincipalResolver> authenticationPrincipalResolvers;
-
-    @Autowired(required = false)
-    private List<AuthenticationLocaleResolver> localeResolvers;
-
-    @Autowired(required = false)
-    private DeviceTimeZoneProvider deviceTimeZoneProvider;
+@RequiredArgsConstructor
+public class DefaultCurrentAuthentication implements CurrentAuthentication {
+    private final ObjectProvider<List<AuthenticationResolver>> authenticationResolvers;
+    private final ObjectProvider<List<AuthenticationPrincipalResolver>> authenticationPrincipalResolvers;
+    private final ObjectProvider<List<AuthenticationLocaleResolver>> localeResolvers;
+    private final ObjectProvider<DeviceTimeZoneProvider> deviceTimeZoneProvider;
 
     @Override
     public Authentication getAuthentication() {
@@ -57,8 +50,8 @@ public class CurrentAuthenticationImpl implements CurrentAuthentication {
             throw new IllegalStateException("Authentication is not set. " +
                     "Use SystemAuthenticator in non-user requests like schedulers or asynchronous calls.");
         }
-        if (authenticationResolvers!=null) {
-            return authenticationResolvers.stream()
+        if (CollectionUtils.isNotEmpty(authenticationResolvers.getIfAvailable())) {
+            return authenticationResolvers.getIfAvailable().stream()
                     .filter(resolver -> resolver.supports(authentication))
                     .findFirst()
                     .map(resolver -> resolver.resolveAuthentication(authentication))
@@ -71,8 +64,8 @@ public class CurrentAuthenticationImpl implements CurrentAuthentication {
     public UserDetails getUser() {
         Authentication authentication = getAuthentication();
         Object principal = null;
-        if (authenticationPrincipalResolvers!=null) {
-            principal = authenticationPrincipalResolvers.stream()
+        if (CollectionUtils.isNotEmpty(authenticationPrincipalResolvers.getIfAvailable())) {
+            principal = authenticationPrincipalResolvers.getIfAvailable().stream()
                     .filter(resolver -> resolver.supports(authentication))
                     .findFirst()
                     .map(resolver -> resolver.resolveAuthenticationPrincipal(authentication))
@@ -99,8 +92,8 @@ public class CurrentAuthenticationImpl implements CurrentAuthentication {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(localeResolvers)) {
-            for (AuthenticationLocaleResolver resolver : localeResolvers) {
+        if (CollectionUtils.isNotEmpty(localeResolvers.getIfAvailable())) {
+            for (AuthenticationLocaleResolver resolver : localeResolvers.getIfAvailable()) {
                 if (resolver.supports(authentication)) {
                     Locale resolvedLocale = resolver.getLocale(authentication);
                     if (resolvedLocale!=null) {
@@ -126,8 +119,8 @@ public class CurrentAuthenticationImpl implements CurrentAuthentication {
 
             if (!Strings.isNullOrEmpty(timeZoneId)) {
                 timeZone = TimeZone.getTimeZone(timeZoneId);
-            } else if (hasTimeZone.isAutoTimeZone() && deviceTimeZoneProvider!=null) {
-                timeZone = deviceTimeZoneProvider.getDeviceTimeZone();
+            } else if (hasTimeZone.isAutoTimeZone() && deviceTimeZoneProvider.getIfAvailable()!=null) {
+                timeZone = deviceTimeZoneProvider.getIfAvailable().getDeviceTimeZone();
             }
         }
 

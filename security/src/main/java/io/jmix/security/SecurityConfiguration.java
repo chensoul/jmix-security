@@ -18,150 +18,135 @@ package io.jmix.security;
 
 import io.jmix.core.CoreConfiguration;
 import io.jmix.core.annotation.JmixModule;
-import io.jmix.security.authentication.impl.StandardAuthenticationManagerSupplier;
-import io.jmix.security.authentication.provider.StandardAuthenticationProvidersProducer;
-import io.jmix.security.authentication.AddonAuthenticationManagerSupplier;
-import io.jmix.security.authentication.AuthenticationManagerSupplier;
+import io.jmix.security.aspect.AuthenticatedAspect;
+import io.jmix.security.authentication.AuthenticationLocaleResolver;
+import io.jmix.security.authentication.AuthenticationPrincipalResolver;
+import io.jmix.security.authentication.AuthenticationResolver;
 import io.jmix.security.authentication.CurrentAuthentication;
+import io.jmix.security.authentication.DeviceTimeZoneProvider;
+import io.jmix.security.authentication.SystemAuthenticator;
+import io.jmix.security.authentication.impl.DefaultAuthenticationManagerSupplierSelector;
+import io.jmix.security.authentication.impl.DefaultCurrentAuthentication;
+import io.jmix.security.authentication.impl.StandardAuthenticationManagerSupplier;
+import io.jmix.security.authentication.impl.SystemAuthenticatorImpl;
+import io.jmix.security.authentication.provider.AuthenticationManagerSupplier;
+import io.jmix.security.authentication.provider.AuthenticationManagerSupplierSelector;
+import io.jmix.security.authentication.provider.StandardAuthenticationProviderProducer;
 import io.jmix.security.check.PostAuthenticationChecks;
 import io.jmix.security.check.PreAuthenticationChecks;
-import io.jmix.security.authentication.impl.AuthenticationManagerSupplierImpl;
-import io.jmix.security.session.JmixSessionAuthenticationStrategy;
-import io.jmix.security.rememberme.JmixRememberMeServices;
-import io.jmix.security.rememberme.RememberMeProperties;
-import io.jmix.security.session.SessionProperties;
 import io.jmix.security.logging.LogMdcFilter;
+import io.jmix.security.user.InMemoryUserRepository;
 import io.jmix.security.user.UserRepository;
-import java.util.LinkedList;
+import io.jmix.security.user.substitution.CurrentUserSubstitution;
+import io.jmix.security.user.substitution.UserSubstitutionManager;
+import io.jmix.security.user.substitution.UserSubstitutionProvider;
+import io.jmix.security.user.substitution.impl.DefaultCurrentUserSubstitution;
+import io.jmix.security.user.substitution.impl.DefaultUserSubstitutionManager;
+import io.jmix.security.user.substitution.impl.InMemoryUserSubstitutionProvider;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.web.authentication.RememberMeServices;
-import static org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices.DEFAULT_PARAMETER;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 
+@RequiredArgsConstructor
 @Configuration
 @ComponentScan
 @ConfigurationPropertiesScan
+@Import(CoreSecurityConfiguration.class)
 @JmixModule(dependsOn = CoreConfiguration.class)
 @PropertySource(name = "io.jmix.security", value = "classpath:/io/jmix/security/module.properties")
 public class SecurityConfiguration {
-    @Autowired
-    private SessionProperties sessionProperties;
-
-    @Autowired
-    private RememberMeProperties rememberMeProperties;
-
-    @Autowired
-    private UserRepository userRepository;
-
     /**
      * Global AuthenticationManager
      */
     @Bean("sec_AuthenticationManager")
-    public AuthenticationManager authenticationManager(AuthenticationManagerSupplier authenticationManagerSupplier) {
-        return authenticationManagerSupplier.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationManagerSupplierSelector authenticationManagerSupplierSelector) {
+        return authenticationManagerSupplierSelector.getAuthenticationManagerSupplier().getAuthenticationManager();
     }
 
     @Bean
-    protected PersistentTokenRepository inMemoryRememberMeRepository() {
-        return new InMemoryTokenRepositoryImpl();
-    }
-
-    @Bean("sec_rememberMeServices")
-    public RememberMeServices rememberMeServices(PersistentTokenRepository rememberMeTokenRepository) {
-        JmixRememberMeServices rememberMeServices =
-                new JmixRememberMeServices(rememberMeProperties.getKey(), userRepository, rememberMeTokenRepository);
-        rememberMeServices.setTokenValiditySeconds(rememberMeProperties.getTokenValiditySeconds());
-        rememberMeServices.setParameter(DEFAULT_PARAMETER);
-        return rememberMeServices;
-    }
-
-    @Primary
-    @Bean
-    public SessionAuthenticationStrategy sessionControlAuthenticationStrategy(SessionRegistry sessionRegistry) {
-        RegisterSessionAuthenticationStrategy registerSessionAuthenticationStrategy
-                = new RegisterSessionAuthenticationStrategy(sessionRegistry);
-        ConcurrentSessionControlAuthenticationStrategy concurrentSessionControlStrategy
-                = new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
-        concurrentSessionControlStrategy.setMaximumSessions(sessionProperties.getMaximumSessionsPerUser());
-
-        List<SessionAuthenticationStrategy> strategies = new LinkedList<>();
-        strategies.add(registerSessionAuthenticationStrategy);
-        strategies.add(concurrentSessionControlStrategy);
-        strategies.add(jmixSessionAuthenticationStrategy());
-
-        return new CompositeSessionAuthenticationStrategy(strategies);
-    }
-
-    @Bean
-    public SessionAuthenticationStrategy jmixSessionAuthenticationStrategy() {
-        return new JmixSessionAuthenticationStrategy();
-    }
-
-    @Bean(name = "sec_SessionRegistry")
-    public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
-    }
-
-    @Bean(name = "sec_HttpSessionEventPublisher")
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
-    }
-
-    @Bean(name = "sec_PreAuthenticationChecks")
-    public PreAuthenticationChecks preAuthenticationChecks() {
-        return new PreAuthenticationChecks();
-    }
-
-    @Bean(name = "sec_PostAuthenticationChecks")
-    public PostAuthenticationChecks postAuthenticationChecks() {
-        return new PostAuthenticationChecks();
-    }
-
-    @Bean("core_AuthenticationEventPublisher")
-    public DefaultAuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher publisher) {
-        return new DefaultAuthenticationEventPublisher(publisher);
-    }
-
-    @Bean("sec_StandardAuthenticationManagerSupplier")
     @Order(200)
-    public AddonAuthenticationManagerSupplier standardAuthenticationManagerSupplier(StandardAuthenticationProvidersProducer providersProducer,
-                                                                                    ApplicationEventPublisher publisher) {
+    public AuthenticationManagerSupplier authenticationManagerSupplier(StandardAuthenticationProviderProducer providersProducer,
+                                                                       ApplicationEventPublisher publisher) {
         return new StandardAuthenticationManagerSupplier(providersProducer, publisher);
     }
 
-    @Bean("sec_AuthenticationManagerSupplier")
-    public AuthenticationManagerSupplier authenticationManagerSupplier(List<AddonAuthenticationManagerSupplier> suppliers) {
-        return new AuthenticationManagerSupplierImpl(suppliers);
+    @Bean
+    public AuthenticationManagerSupplierSelector authenticationManagerSupplierSelector(List<AuthenticationManagerSupplier> suppliers) {
+        return new DefaultAuthenticationManagerSupplierSelector(suppliers);
     }
 
-    @Bean("core_LogMdcFilterRegistrationBean")
-    @Order(JmixOrder.HIGHEST_PRECEDENCE + 300)
-    public FilterRegistrationBean<LogMdcFilter> logMdcFilterFilterRegistrationBean(CurrentAuthentication currentAuthentication) {
-        LogMdcFilter logMdcFilter = new LogMdcFilter(currentAuthentication);
-        FilterRegistrationBean<LogMdcFilter> filterRegistration = new FilterRegistrationBean<>(logMdcFilter);
-        filterRegistration.setUrlPatterns(Set.of("/*"));
-        return filterRegistration;
+    @Bean
+    @ConditionalOnMissingBean
+    public StandardAuthenticationProviderProducer standardAuthenticationProviderProducer(UserRepository userRepository,
+                                                                                         PasswordEncoder passwordEncoder,
+                                                                                         PreAuthenticationChecks preAuthenticationChecks,
+                                                                                         PostAuthenticationChecks postAuthenticationChecks) {
+        return new StandardAuthenticationProviderProducer(userRepository, passwordEncoder, preAuthenticationChecks, postAuthenticationChecks);
     }
 
+    @Bean
+    public CurrentAuthentication currentAuthentication(ObjectProvider<List<AuthenticationResolver>> authenticationResolvers,
+                                                       ObjectProvider<List<AuthenticationPrincipalResolver>> authenticationPrincipalResolvers,
+                                                       ObjectProvider<List<AuthenticationLocaleResolver>> localeResolvers,
+                                                       ObjectProvider<DeviceTimeZoneProvider> deviceTimeZoneProvider) {
+        return new DefaultCurrentAuthentication(authenticationResolvers, authenticationPrincipalResolvers, localeResolvers, deviceTimeZoneProvider);
+    }
+
+    @Bean
+    public SystemAuthenticator systemAuthenticator(AuthenticationManager authenticationManager) {
+        return new SystemAuthenticatorImpl(authenticationManager);
+    }
+
+    @Bean
+    public AuthenticatedAspect authenticatedAspect(SystemAuthenticator systemAuthenticator) {
+        return new AuthenticatedAspect(systemAuthenticator);
+    }
+
+    @Bean
+    public CurrentUserSubstitution currentUserSubstitution(CurrentAuthentication currentAuthentication) {
+        return new DefaultCurrentUserSubstitution(currentAuthentication);
+    }
+
+    @Bean
+    public UserSubstitutionManager userSubstitutionManager(UserRepository userRepository,
+                                                           AuthenticationManager authenticationManager,
+                                                           CurrentAuthentication currentAuthentication,
+                                                           ApplicationEventPublisher eventPublisher,
+                                                           Collection<UserSubstitutionProvider> userSubstitutionProviders) {
+        return new DefaultUserSubstitutionManager(userRepository, authenticationManager, currentAuthentication, eventPublisher, userSubstitutionProviders);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserSubstitutionProvider userSubstitutionProvider(ApplicationEventPublisher eventPublisher) {
+        return new InMemoryUserSubstitutionProvider(eventPublisher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    protected PersistentTokenRepository persistentTokenRepository() {
+        return new InMemoryTokenRepositoryImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserRepository userRepository() {
+        return new InMemoryUserRepository();
+    }
 }

@@ -27,7 +27,7 @@ import io.jmix.authserver.roleassignment.InMemoryRegisteredClientRoleAssignmentR
 import io.jmix.authserver.roleassignment.RegisteredClientRoleAssignment;
 import io.jmix.authserver.roleassignment.RegisteredClientRoleAssignmentPropertiesMapper;
 import io.jmix.authserver.roleassignment.RegisteredClientRoleAssignmentRepository;
-import io.jmix.security.JmixSecurityFilterChainOrder;
+import io.jmix.security.JmixSecurityFilterOrder;
 import io.jmix.security.util.JmixHttpSecurityUtils;
 import io.jmix.securityresourceserver.requestmatcher.CompositeResourceServerRequestMatcherProvider;
 import java.util.Collection;
@@ -83,7 +83,7 @@ public class AuthServerAutoConfiguration {
         }
 
         @Bean("authsr_LoginFormSecurityFilterChain")
-        @Order(JmixSecurityFilterChainOrder.AUTHSERVER_LOGIN_FORM)
+        @Order(JmixSecurityFilterOrder.AUTHSERVER_LOGIN_FORM)
         public SecurityFilterChain loginFormSecurityFilterChain(HttpSecurity http)
                 throws Exception {
             http
@@ -115,7 +115,7 @@ public class AuthServerAutoConfiguration {
          * Enables CORS for pre-flight requests to OAuth2 endpoints
          */
         @Bean("authsr_AuthorizationServerCorsSecurityFilterChain")
-        @Order(JmixSecurityFilterChainOrder.AUTHSERVER_AUTHORIZATION_SERVER + 5)
+        @Order(JmixSecurityFilterOrder.AUTHSERVER_AUTHORIZATION_SERVER + 5)
         public SecurityFilterChain authorizationServerCorsSecurityFilterChain(HttpSecurity http)
                 throws Exception {
             http.securityMatcher(antMatcher(HttpMethod.OPTIONS, "/oauth2/**"));
@@ -124,7 +124,7 @@ public class AuthServerAutoConfiguration {
         }
 
         @Bean("authsr_AuthorizationServerSecurityFilterChain")
-        @Order(JmixSecurityFilterChainOrder.AUTHSERVER_AUTHORIZATION_SERVER)
+        @Order(JmixSecurityFilterOrder.AUTHSERVER_AUTHORIZATION_SERVER)
         public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
                 throws Exception {
             OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
@@ -174,7 +174,7 @@ public class AuthServerAutoConfiguration {
         public static final String SECURITY_CONFIGURER_QUALIFIER = "authorization-server-resource-server";
 
         @Bean("authsr_ResourceServerSecurityFilterChain")
-        @Order(JmixSecurityFilterChainOrder.AUTHSERVER_RESOURCE_SERVER)
+        @Order(JmixSecurityFilterOrder.AUTHSERVER_RESOURCE_SERVER)
         public SecurityFilterChain resourceServerSecurityFilterChain(HttpSecurity http,
                                                                      OpaqueTokenIntrospector opaqueTokenIntrospector,
                                                                      ApplicationEventPublisher applicationEventPublisher,

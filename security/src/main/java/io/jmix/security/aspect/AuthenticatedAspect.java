@@ -16,6 +16,8 @@
 
 package io.jmix.security.aspect;
 
+import io.jmix.security.authentication.SystemAuthenticator;
+import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -25,17 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Aspect
-@Component("core_AuthenticatedAspect")
+@RequiredArgsConstructor
 public class AuthenticatedAspect {
-
     private static final Logger log = LoggerFactory.getLogger(AuthenticatedAspect.class);
 
-    private SystemAuthenticator authenticator;
-
-    @Autowired
-    public void setAuthenticator(SystemAuthenticator authenticator) {
-        this.authenticator = authenticator;
-    }
+    private final SystemAuthenticator authenticator;
 
     @Around("execution(@io.jmix.security.annotation.Authenticated * *(..))")
     private Object aroundInvoke(ProceedingJoinPoint ctx) throws Throwable {

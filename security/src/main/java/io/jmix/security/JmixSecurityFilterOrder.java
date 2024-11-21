@@ -16,11 +16,13 @@
 
 package io.jmix.security;
 
+import io.jmix.core.JmixOrder;
+
 /**
  * A set of constants with order values of {@link org.springframework.security.web.SecurityFilterChain} used in Jmix
  * modules.
  */
-public interface JmixSecurityFilterChainOrder {
+public interface JmixSecurityFilterOrder {
 
     /**
      * Use this constant and its derivatives (CUSTOM - 10, CUSTOM - 20, etc.) for custom
@@ -39,4 +41,6 @@ public interface JmixSecurityFilterChainOrder {
     int CORE_SECURITY = JmixOrder.HIGHEST_PRECEDENCE + 300;
     int LDAP = JmixOrder.HIGHEST_PRECEDENCE + 300;
     int STANDARD_SECURITY = JmixOrder.HIGHEST_PRECEDENCE + 300;
+    int MDC = JmixOrder.HIGHEST_PRECEDENCE + 310;
+
 }

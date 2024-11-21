@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.jmix.security.aspect;
+package io.jmix.security.authentication;
 
 import io.jmix.security.authentication.token.SystemAuthenticationToken;
 import org.slf4j.Logger;
