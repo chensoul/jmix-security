@@ -7,6 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.5</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.chensoul</groupId>
@@ -34,6 +35,10 @@
         <module>oidc</module>
         <module>oidc-starter</module>
         <module>test-sample</module>
+        <module>localfs</module>
+        <module>localfs-starter</module>
+        <module>awsfs</module>
+        <module>awsfs-starter</module>
         <module>email</module>
         <module>email-starter</module>
     </modules>

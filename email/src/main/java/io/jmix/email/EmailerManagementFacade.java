@@ -18,8 +18,6 @@ package io.jmix.email;
 
 import io.jmix.email.entity.SendingAttachment;
 import io.jmix.email.entity.SendingMessage;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
@@ -46,9 +44,6 @@ public class EmailerManagementFacade {
     protected Emailer emailer;
 
     protected TransactionTemplate transaction;
-
-    @PersistenceContext
-    protected EntityManager entityManager;
 
     @Autowired
     protected EmailerProperties emailerProperties;

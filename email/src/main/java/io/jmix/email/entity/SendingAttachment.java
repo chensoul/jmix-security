@@ -17,6 +17,7 @@
 package io.jmix.email.entity;
 
 
+import io.jmix.core.filestore.FileRef;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -81,7 +82,7 @@ public class SendingAttachment implements Serializable {
     protected byte[] content;
 
     @Column(name = "CONTENT_FILE")
-    protected String contentFile;
+    protected FileRef contentFile;
 
     @Column(name = "NAME", length = 500)
     protected String name;

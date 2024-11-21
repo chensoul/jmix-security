@@ -19,6 +19,7 @@ package io.jmix.email;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 /**
  * Contains email details: list of recipients, from address, subject, body and attachments.
@@ -27,6 +28,7 @@ import java.util.List;
  * @see Emailer
  * @see EmailInfoBuilder
  */
+@Data
 public class EmailInfo implements Serializable {
 
     private static final long serialVersionUID = -382773435130109083L;
@@ -49,7 +51,6 @@ public class EmailInfo implements Serializable {
     private boolean important;
     private List<EmailAttachment> attachments;
     private List<EmailHeader> headers;
-
 
     /**
      * INTERNAL
@@ -74,92 +75,11 @@ public class EmailInfo implements Serializable {
         this.bodyContentType = bodyContentType;
         this.headers = headers;
         this.attachments = attachments;
-
-    }
-
-    public String getAddresses() {
-        return addresses;
-    }
-
-    public void setAddresses(String addresses) {
-        this.addresses = addresses;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public List<EmailAttachment> getAttachments() {
-        return attachments;
-    }
-
-    public void setAttachments(List<EmailAttachment> attachments) {
-        this.attachments = attachments;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public List<EmailHeader> getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(List<EmailHeader> headers) {
-        this.headers = headers;
     }
 
     public void addHeader(String name, String value) {
-        if (this.headers == null)
+        if (this.headers==null)
             this.headers = new ArrayList<>();
         this.headers.add(new EmailHeader(name, value));
-    }
-
-    public String getBodyContentType() {
-        return bodyContentType;
-    }
-
-    public void setBodyContentType(String bodyContentType) {
-        this.bodyContentType = bodyContentType;
-    }
-
-    public String getCc() {
-        return cc;
-    }
-
-    public void setCc(String cc) {
-        this.cc = cc;
-    }
-
-    public String getBcc() {
-        return bcc;
-    }
-
-    public void setBcc(String bcc) {
-        this.bcc = bcc;
-    }
-
-    public Boolean getImportant() {
-        return important;
-    }
-
-    public void setImportant(Boolean important) {
-        this.important = important;
     }
 }

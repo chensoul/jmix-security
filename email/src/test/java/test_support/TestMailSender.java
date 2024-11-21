@@ -17,20 +17,18 @@
 package test_support;
 
 
-import org.junit.Assert;
+import jakarta.mail.internet.MimeMessage;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
-import jakarta.mail.internet.MimeMessage;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Used by functional tests.
  * Fakes real JavaMailSender.
- *
  */
 @Component
 public class TestMailSender extends JavaMailSenderImpl {
@@ -48,7 +46,7 @@ public class TestMailSender extends JavaMailSenderImpl {
 
     public MimeMessage fetchSentEmail() {
 
-        Assert.assertFalse(myMessages.isEmpty());
+        Assertions.assertFalse(myMessages.isEmpty());
 
         return myMessages.remove(0);
     }

@@ -16,7 +16,6 @@
 
 package io.jmix.email;
 
-
 import io.jmix.core.util.EnumClass;
 import org.springframework.lang.Nullable;
 

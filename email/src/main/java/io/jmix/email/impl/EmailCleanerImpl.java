@@ -16,11 +16,15 @@
 
 package io.jmix.email.impl;
 
-import io.jmix.core.TimeSource;
+import io.jmix.core.filestore.FileStorage;
 import io.jmix.email.EmailCleaner;
 import io.jmix.email.EmailerProperties;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import io.jmix.email.entity.SendingMessage;
+import io.jmix.email.repository.SendingMessageRepository;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,17 +34,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("email_EmailCleaner")
 public class EmailCleanerImpl implements EmailCleaner {
-
     private static final Logger log = LoggerFactory.getLogger(EmailCleanerImpl.class);
 
     @Autowired
     private EmailerProperties emailerProperties;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    @Autowired
+    private SendingMessageRepository sendingMessageRepository;
 
     @Autowired
-    private TimeSource timeSource;
+    private FileStorage fileStorage;
 
     @Transactional
     @Override
@@ -48,7 +51,6 @@ public class EmailCleanerImpl implements EmailCleaner {
         log.trace("Start deletion of old emails...");
         int maxAgeOfImportantMessages = emailerProperties.getMaxAgeOfImportantMessages();
         int maxAgeOfNonImportantMessages = emailerProperties.getMaxAgeOfNonImportantMessages();
-//        entityManager.setProperty(PersistenceHints.SOFT_DELETION, false);
 
         int result = 0;
         if (maxAgeOfNonImportantMessages!=0) {
@@ -64,32 +66,27 @@ public class EmailCleanerImpl implements EmailCleaner {
     }
 
     private int deleteMessages(int ageOfMessage, boolean important) {
-//        FileStorage fileStorage = fileStorageLocator.getDefault();
-//        List<SendingMessage> messagesToDelete = entityManager.createQuery("select msg from email_SendingMessage msg" +
-//                " where msg.important = :important and msg.createTs < :date", SendingMessage.class)
-//                .setParameter("important", important)
-//                .setParameter("date", Date.from(timeSource.now().minusDays(ageOfMessage).toInstant()))
-//                .setHint(PersistenceHints.FETCH_PLAN,
-//                        fetchPlanRepository.getFetchPlan(SendingMessage.class, "sendingMessage.deleteFile"))
-//                .getResultList();
-//        if (emailerProperties.getCleanFileStorage()) {
-//            messagesToDelete.forEach(msg -> {
-//                msg.getAttachments().stream()
-//                        .filter(attachment -> attachment.getContentFile() != null)
-//                        .forEach(attachment -> fileStorage.removeFile(attachment.getContentFile()));
-//                if (msg.getContentTextFile() != null) {
-//                    fileStorage.removeFile(msg.getContentTextFile());
-//                }
-//            });
-//        }
-//
-//        if (!messagesToDelete.isEmpty()) {
-//            return entityManager.createQuery("delete from email_SendingMessage msg where msg.id in :ids", Integer.class)
-//                    .setParameter("ids", messagesToDelete.stream().map(SendingMessage::getId).collect(Collectors.toList()))
-//                    .executeUpdate();
-//        } else {
-//            return 0;
-//        }
-        return 0;
+
+        List<SendingMessage> messagesToDelete = sendingMessageRepository.findByImportantAndCreateTsLessThan(
+                important, Date.from(ZonedDateTime.now().minusDays(ageOfMessage).toInstant()));
+
+        if (emailerProperties.isCleanFileStorage()) {
+            messagesToDelete.forEach(msg -> {
+                msg.getAttachments().stream()
+                        .filter(attachment -> attachment.getContentFile()!=null)
+                        .forEach(attachment -> fileStorage.removeFile(attachment.getContentFile()));
+                if (msg.getContentTextFile()!=null) {
+                    fileStorage.removeFile(msg.getContentTextFile());
+                }
+            });
+        }
+
+        if (!messagesToDelete.isEmpty()) {
+            List<SendingMessage> sendingMessages = sendingMessageRepository.findAllById(messagesToDelete.stream().map(SendingMessage::getId).collect(Collectors.toList()));
+            sendingMessageRepository.deleteAllInBatch(sendingMessages);
+            return sendingMessages.size();
+        } else {
+            return 0;
+        }
     }
 }

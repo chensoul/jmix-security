@@ -19,10 +19,12 @@ package io.jmix.email;
 import io.jmix.email.entity.SendingAttachment;
 import io.jmix.email.entity.SendingMessage;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 
+@Getter
 @Validated
 @ConfigurationProperties(prefix = "jmix.email")
 public class EmailerProperties {
@@ -146,117 +148,5 @@ public class EmailerProperties {
         this.maxAgeOfNonImportantMessages = maxAgeOfNonImportantMessages;
         this.emailCleaningCron = emailCleaningCron;
         this.cleanFileStorage = cleanFileStorage;
-    }
-
-    /**
-     * @see #fromAddress
-     */
-    public String getFromAddress() {
-        return fromAddress;
-    }
-
-    /**
-     * @see #scheduledSendingDelayCallCount
-     */
-    public int getScheduledSendingDelayCallCount() {
-        return scheduledSendingDelayCallCount;
-    }
-
-    /**
-     * @see #messageQueueCapacity
-     */
-    public int getMessageQueueCapacity() {
-        return messageQueueCapacity;
-    }
-
-    /**
-     * @see #defaultSendingAttemptsLimit
-     */
-    public int getDefaultSendingAttemptsLimit() {
-        return defaultSendingAttemptsLimit;
-    }
-
-    /**
-     * @see #sendingTimeoutSec
-     */
-    public int getSendingTimeoutSec() {
-        return sendingTimeoutSec;
-    }
-
-    /**
-     * @see #adminAddress
-     */
-    public String getAdminAddress() {
-        return adminAddress;
-    }
-
-    /**
-     * @see #sendAllToAdmin
-     */
-    public boolean isSendAllToAdmin() {
-        return sendAllToAdmin;
-    }
-
-    /**
-     * @see #useFileStorage
-     */
-    public boolean isUseFileStorage() {
-        return useFileStorage;
-    }
-
-    /**
-     * @see #asyncSendingUsername
-     */
-    public String getAsyncSendingUsername() {
-        return asyncSendingUsername;
-    }
-
-    /**
-     * @see #useDefaultQuartzConfiguration
-     */
-    public boolean getUseDefaultQuartzConfiguration() {
-        return useDefaultQuartzConfiguration;
-    }
-
-    /**
-     * @see #emailSendingCron
-     */
-    public String getEmailSendingCron() {
-        return emailSendingCron;
-    }
-
-    /**
-     * @see #useDefaultEmailCleaningQuartzConfiguration
-     */
-    public boolean getUseDefaultEmailCleaningQuartzConfiguration() {
-        return useDefaultEmailCleaningQuartzConfiguration;
-    }
-
-    /**
-     * @see #maxAgeOfImportantMessages
-     */
-    public int getMaxAgeOfImportantMessages() {
-        return maxAgeOfImportantMessages;
-    }
-
-    /**
-     * @see #maxAgeOfNonImportantMessages
-     */
-    public int getMaxAgeOfNonImportantMessages() {
-        return maxAgeOfNonImportantMessages;
-    }
-
-    /**
-     * @see #emailCleaningCron
-     */
-    public String getEmailCleaningCron() {
-        return emailCleaningCron;
-    }
-
-    /**
-     * @see #cleanFileStorage
-     */
-    public boolean getCleanFileStorage() {
-        return cleanFileStorage;
     }
 }

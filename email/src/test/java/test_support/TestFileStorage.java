@@ -18,9 +18,8 @@ package test_support;
 
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
-import io.jmix.core.FileRef;
-import io.jmix.core.FileStorage;
-
+import io.jmix.core.filestore.FileRef;
+import io.jmix.core.filestore.FileStorage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

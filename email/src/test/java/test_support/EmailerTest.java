@@ -17,22 +17,20 @@
 package test_support;
 
 import com.google.common.collect.Lists;
-import io.jmix.core.*;
-import io.jmix.core.metamodel.model.MetaClass;
-import io.jmix.email.*;
+import io.jmix.core.filestore.FileStorage;
+import io.jmix.core.filestore.FileStorageLocator;
+import io.jmix.email.EmailAttachment;
+import io.jmix.email.EmailDataProvider;
+import io.jmix.email.EmailException;
+import io.jmix.email.EmailInfo;
+import io.jmix.email.EmailInfoBuilder;
+import io.jmix.email.Emailer;
+import io.jmix.email.EmailerConfigPropertiesAccess;
+import io.jmix.email.EmailerProperties;
+import io.jmix.email.SendingStatus;
 import io.jmix.email.entity.SendingAttachment;
 import io.jmix.email.entity.SendingMessage;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
+import io.jmix.email.repository.SendingMessageRepository;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Part;
@@ -43,8 +41,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {EmailTestConfiguration.class})
@@ -61,10 +71,7 @@ public class EmailerTest {
     private TestMailSender testMailSender;
 
     @Autowired
-    private TimeSource timeSource;
-
-    @Autowired
-    private DataManager dataManager;
+    private SendingMessageRepository sendingMessageRepository;
 
     @Autowired
     private EmailerProperties emailerProperties;
@@ -72,11 +79,6 @@ public class EmailerTest {
     @Autowired
     private FileStorageLocator fileStorageLocator;
 
-    @Autowired
-    private Metadata metadata;
-
-    @Autowired
-    private FetchPlanRepository fetchPlanRepository;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -706,7 +708,7 @@ public class EmailerTest {
 
     /* Utility */
     private Date getDeadlineWhichDoesntMatter() {
-        return DateUtils.addHours(timeSource.currentTimestamp(), 2);
+        return DateUtils.addHours(new Date(), 2);
     }
 
     private String getBody(MimeMessage msg) throws Exception {
@@ -752,16 +754,7 @@ public class EmailerTest {
     }
 
     private SendingMessage reload(SendingMessage sendingMessage, String fetchPlanName) {
-        MetaClass metaClass = metadata.getClass(SendingMessage.class);
-        LoadContext<SendingMessage> loadContext = new LoadContext<>(metaClass);
-        loadContext.setId(sendingMessage.getId());
-        if (StringUtils.isNotEmpty(fetchPlanName)) {
-            FetchPlan fetchPlan = fetchPlanRepository.findFetchPlan(metaClass, fetchPlanName);
-            if (fetchPlan != null) {
-                loadContext.setFetchPlan(fetchPlan);
-            }
-        }
-        return dataManager.load(loadContext);
+        return sendingMessageRepository.getById(sendingMessage.getId());
     }
 
     private void assertByteArrayEquals(byte[] expected, byte[] actual) {

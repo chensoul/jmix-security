@@ -15,6 +15,7 @@
  */
 package io.jmix.email;
 
+import lombok.Getter;
 import org.springframework.lang.Nullable;
 import jakarta.mail.Part;
 import java.io.Serializable;
@@ -23,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * @see EmailInfo
  */
+@Getter
 public class EmailAttachment implements Serializable {
     private static final long serialVersionUID = 8201729520638588939L;
 
@@ -63,26 +65,6 @@ public class EmailAttachment implements Serializable {
         this.contentId = contentId;
         this.disposition = disposition;
         this.encoding = encoding;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getContentId() {
-        return contentId;
-    }
-
-    public String getDisposition() {
-        return disposition;
-    }
-
-    public String getEncoding() {
-        return encoding;
     }
 
     public static EmailAttachment createTextAttachment(String text, String encoding, String name) {

@@ -16,6 +16,7 @@
 
 package io.jmix.email.entity;
 
+import io.jmix.core.filestore.FileRef;
 import io.jmix.email.SendingStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -100,7 +101,7 @@ public class SendingMessage implements Serializable {
     protected String contentText;
 
     @Column(name = "CONTENT_TEXT_FILE")
-    protected String contentTextFile;
+    protected FileRef contentTextFile;
 
     @Column(name = "STATUS")
     protected Integer status;

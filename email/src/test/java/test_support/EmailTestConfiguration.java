@@ -17,45 +17,34 @@
 package test_support;
 
 import io.jmix.core.CoreConfiguration;
-import io.jmix.core.JmixModules;
-import io.jmix.core.Resources;
-import io.jmix.core.Stores;
 import io.jmix.core.cluster.ClusterApplicationEventChannelSupplier;
 import io.jmix.core.cluster.LocalApplicationEventChannelSupplier;
-import io.jmix.core.security.CoreSecurityConfiguration;
-import io.jmix.core.security.InMemoryUserRepository;
-import io.jmix.core.security.UserRepository;
-import io.jmix.data.DataConfiguration;
-import io.jmix.data.impl.JmixEntityManagerFactoryBean;
-import io.jmix.data.impl.JmixTransactionManager;
-import io.jmix.data.persistence.DbmsSpecifics;
-import io.jmix.eclipselink.EclipselinkConfiguration;
 import io.jmix.email.EmailConfiguration;
-import liquibase.integration.spring.SpringLiquibase;
+import io.jmix.security.CoreSecurityConfiguration;
+import io.jmix.security.authentication.InMemoryUserRepository;
+import io.jmix.security.user.UserRepository;
+import java.util.Collections;
+import javax.sql.DataSource;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.scripting.ScriptEvaluator;
 import org.springframework.scripting.groovy.GroovyScriptEvaluator;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import jakarta.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-import java.util.Collections;
 
 @Configuration
-@Import({CoreConfiguration.class, DataConfiguration.class, EclipselinkConfiguration.class,
-        EmailConfiguration.class})
+@Import({CoreConfiguration.class, EmailConfiguration.class})
 @PropertySource("classpath:/test_support/test-app.properties")
 @EnableWebSecurity
 public class EmailTestConfiguration extends CoreSecurityConfiguration {
@@ -73,30 +62,6 @@ public class EmailTestConfiguration extends CoreSecurityConfiguration {
     @Primary
     JdbcTemplate jdbcTemplate() {
         return new JdbcTemplate(dataSource());
-    }
-
-    @Bean
-    @Primary
-    protected LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
-                                                                          JpaVendorAdapter jpaVendorAdapter,
-                                                                          DbmsSpecifics dbmsSpecifics,
-                                                                          JmixModules jmixModules,
-                                                                          Resources resources) {
-        return new JmixEntityManagerFactoryBean(Stores.MAIN, dataSource, jpaVendorAdapter, dbmsSpecifics, jmixModules, resources);
-    }
-
-    @Bean
-    @Primary
-    PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-        return new JmixTransactionManager(Stores.MAIN, entityManagerFactory);
-    }
-
-    @Bean
-    public SpringLiquibase liquibase(DataSource dataSource) {
-        SpringLiquibase liquibase = new SpringLiquibase();
-        liquibase.setDataSource(dataSource);
-        liquibase.setChangeLog("test_support/liquibase/test-changelog.xml");
-        return liquibase;
     }
 
     @Bean
