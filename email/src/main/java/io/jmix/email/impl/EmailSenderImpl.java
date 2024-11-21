@@ -19,7 +19,6 @@ package io.jmix.email.impl;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import io.jmix.core.CoreProperties;
-import io.jmix.core.TimeSource;
 import io.jmix.core.filestore.FileTypesHelper;
 import io.jmix.email.EmailHeader;
 import io.jmix.email.EmailSender;
@@ -44,6 +43,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +58,6 @@ public class EmailSenderImpl implements EmailSender {
 
     @Autowired
     protected JavaMailSender mailSender;
-
-    @Autowired
-    protected TimeSource timeSource;
 
     @Autowired
     protected CoreProperties coreProperties;
@@ -85,7 +82,7 @@ public class EmailSenderImpl implements EmailSender {
         assignRecipient(Message.RecipientType.CC, sendingMessage.getCc(), msg);
         assignRecipient(Message.RecipientType.BCC, sendingMessage.getBcc(), msg);
         msg.setSubject(sendingMessage.getSubject(), StandardCharsets.UTF_8.name());
-        msg.setSentDate(timeSource.currentTimestamp());
+        msg.setSentDate(new Date());
 
         assignFromAddress(sendingMessage, msg);
         addHeaders(sendingMessage, msg);
@@ -98,7 +95,7 @@ public class EmailSenderImpl implements EmailSender {
         for (SendingAttachment attachment : sendingMessage.getAttachments()) {
             MimeBodyPart attachmentPart = createAttachmentPart(attachment);
 
-            if (attachment.getContentId() == null) {
+            if (attachment.getContentId()==null) {
                 content.addBodyPart(attachmentPart);
             } else
                 textPart.addBodyPart(attachmentPart);
@@ -144,7 +141,7 @@ public class EmailSenderImpl implements EmailSender {
             }
         }
 
-        if (internetAddresses.length == 1) {
+        if (internetAddresses.length==1) {
             msg.setFrom(internetAddresses[0]);
         } else {
             msg.addFrom(internetAddresses);
@@ -152,12 +149,12 @@ public class EmailSenderImpl implements EmailSender {
     }
 
     private void addHeaders(SendingMessage sendingMessage, MimeMessage message) throws MessagingException {
-        if (sendingMessage.getHeaders() == null)
+        if (sendingMessage.getHeaders()==null)
             return;
         String[] splitHeaders = sendingMessage.getHeaders().split(SendingMessage.HEADERS_SEPARATOR);
         for (String header : splitHeaders) {
             EmailHeader emailHeader = EmailHeader.parse(header);
-            if (emailHeader != null) {
+            if (emailHeader!=null) {
                 message.addHeader(emailHeader.getName(), emailHeader.getValue());
             } else {
                 log.warn("Can't parse email header: '{}'", header);
@@ -171,13 +168,13 @@ public class EmailSenderImpl implements EmailSender {
         String mimeType = FileTypesHelper.getMIMEType(attachment.getName());
 
         String contentId = attachment.getContentId();
-        if (contentId == null) {
+        if (contentId==null) {
             contentId = generateAttachmentContentId(attachment.getName());
         }
 
-        String disposition = attachment.getDisposition() != null ? attachment.getDisposition() : Part.INLINE;
-        String charset = MimeUtility.mimeCharset(attachment.getEncoding() != null ?
-                attachment.getEncoding() : StandardCharsets.UTF_8.name());
+        String disposition = attachment.getDisposition()!=null ? attachment.getDisposition():Part.INLINE;
+        String charset = MimeUtility.mimeCharset(attachment.getEncoding()!=null ?
+                attachment.getEncoding():StandardCharsets.UTF_8.name());
         String contentTypeValue = String.format("%s; charset=%s; name=\"%s\"", mimeType, charset, attachment.getName());
 
         MimeBodyPart attachmentPart = new MimeBodyPart();

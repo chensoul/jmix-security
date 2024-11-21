@@ -23,13 +23,6 @@ import io.jmix.core.util.ProxyClassLoader;
 import io.jmix.core.util.TimestampClass;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -39,10 +32,22 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component("core_JavaClassLoader")
 public class JavaClassLoader extends URLClassLoader {
@@ -57,8 +62,6 @@ public class JavaClassLoader extends URLClassLoader {
     protected final ProxyClassLoader proxyClassLoader;
     protected final Map<String, ClassFilesProvider> classFilesProviders;
 
-    @Autowired
-    protected TimeSource timeSource;
     @Autowired
     protected SpringBeanLoader springBeanLoader;
     @Autowired
@@ -145,7 +148,7 @@ public class JavaClassLoader extends URLClassLoader {
                 throw new RuntimeException("Class not found", e);
             }
             loadedClasses.put(fqn, clazz);
-            loaded.put(fqn, new TimestampClass(clazz, getCurrentTimestamp()));
+            loaded.put(fqn, new TimestampClass(clazz, new Date()));
         }
         springBeanLoader.updateContext(loadedClasses.values());
         return loadedClasses.get(fullClassName);
@@ -304,10 +307,6 @@ public class JavaClassLoader extends URLClassLoader {
         }
 
         return result;
-    }
-
-    protected Date getCurrentTimestamp() {
-        return timeSource.currentTimestamp();
     }
 
     TimestampClass getTimestampClass(String name) {

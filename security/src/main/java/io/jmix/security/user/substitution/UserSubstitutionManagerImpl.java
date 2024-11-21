@@ -16,22 +16,20 @@
 
 package io.jmix.security.user.substitution;
 
-import io.jmix.core.TimeSource;
 import io.jmix.security.authentication.CurrentAuthentication;
-import io.jmix.security.util.SecurityContextHelper;
+import io.jmix.security.authentication.token.SubstitutedUserAuthenticationToken;
 import io.jmix.security.user.UserRepository;
 import io.jmix.security.user.substitution.event.UserSubstitutedEvent;
-import io.jmix.security.authentication.token.SubstitutedUserAuthenticationToken;
+import io.jmix.security.util.SecurityContextHelper;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component("core_UserSubstitutionManager")
 public class UserSubstitutionManagerImpl implements UserSubstitutionManager {
@@ -51,17 +49,15 @@ public class UserSubstitutionManagerImpl implements UserSubstitutionManager {
     @Autowired
     protected Collection<UserSubstitutionProvider> userSubstitutionProviders;
 
-    @Autowired
-    protected TimeSource timeSource;
 
     @Override
     public List<UserDetails> getCurrentSubstitutedUsers() {
-        return getSubstitutedUsers(currentAuthentication.getUser().getUsername(), timeSource.currentTimestamp());
+        return getSubstitutedUsers(currentAuthentication.getUser().getUsername(), new Date());
     }
 
     @Override
     public List<UserDetails> getSubstitutedUsers(String username, Date date) {
-        if (userRepository == null) {
+        if (userRepository==null) {
             throw new IllegalStateException("UserRepository is not defined");
         }
         return getUserSubstitutions(username, date).stream()
@@ -89,7 +85,7 @@ public class UserSubstitutionManagerImpl implements UserSubstitutionManager {
                             substitutedUserName));
         }
 
-        if (authenticationManager == null) {
+        if (authenticationManager==null) {
             throw new IllegalStateException("AuthenticationManager is not defined");
         }
 
@@ -102,7 +98,7 @@ public class UserSubstitutionManagerImpl implements UserSubstitutionManager {
 
     protected boolean canSubstitute(String userName, String substitutedUserName) {
         return userName.equals(substitutedUserName)
-                || getUserSubstitutions(userName, timeSource.currentTimestamp()).stream()
+                || getUserSubstitutions(userName, new Date()).stream()
                 .anyMatch(userSubstitution -> userSubstitution.getSubstitutedUsername().equals(substitutedUserName));
     }
 }

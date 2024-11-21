@@ -19,7 +19,6 @@ package io.jmix.localfs;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.jmix.core.CoreProperties;
-import io.jmix.core.TimeSource;
 import io.jmix.core.filestore.FileRef;
 import io.jmix.core.filestore.FileStorage;
 import io.jmix.core.filestore.FileStorageException;
@@ -35,6 +34,7 @@ import java.nio.file.Paths;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -64,9 +64,6 @@ public class LocalFileStorage implements FileStorage {
 
     @Autowired
     protected CoreProperties coreProperties;
-
-    @Autowired
-    protected TimeSource timeSource;
 
     @Value("${jmix.localfs.disable-path-check:false}")
     protected Boolean disablePathCheck;
@@ -113,8 +110,8 @@ public class LocalFileStorage implements FileStorage {
     }
 
     protected Path[] getStorageRoots() {
-        if (storageRoots == null) {
-            String storageDir = this.storageDir != null ? this.storageDir : properties.getStorageDir();
+        if (storageRoots==null) {
+            String storageDir = this.storageDir!=null ? this.storageDir:properties.getStorageDir();
             if (StringUtils.isBlank(storageDir)) {
                 String workDir = coreProperties.getWorkDir();
                 Path dir = Paths.get(workDir, "filestorage");
@@ -150,7 +147,7 @@ public class LocalFileStorage implements FileStorage {
 
         Path path = roots[0].resolve(relativePath);
         Path parentPath = path.getParent();
-        if (parentPath == null) {
+        if (parentPath==null) {
             throw new FileStorageException(FileStorageException.Type.IO_EXCEPTION,
                     "Invalid storage root: " + path);
         }
@@ -167,14 +164,15 @@ public class LocalFileStorage implements FileStorage {
             size = IOUtils.copyLarge(inputStream, outputStream, 0, maxAllowedSize);
 
             if (size >= maxAllowedSize) {
-                if (inputStream.read() != IOUtils.EOF) {
+                if (inputStream.read()!=IOUtils.EOF) {
                     outputStream.close();
-                    if (path.toFile().exists()){
-                        if(!path.toFile().delete()){
+                    if (path.toFile().exists()) {
+                        if (!path.toFile().delete()) {
                             log.warn("Failed to delete an incorrectly uploaded file '{}'. " +
                                             "File was to large and has been rejected but already loaded part was not deleted.",
                                     path.toAbsolutePath());
-                        };
+                        }
+                        ;
                     }
 
                     throw new FileStorageException(FileStorageException.Type.IO_EXCEPTION,
@@ -229,7 +227,7 @@ public class LocalFileStorage implements FileStorage {
         Path relativePath = getRelativePath(reference.getPath());
 
         Path[] roots = getStorageRoots();
-        if (roots.length == 0) {
+        if (roots.length==0) {
             log.error("No storage directories available");
             throw new FileStorageException(FileStorageException.Type.FILE_NOT_FOUND, reference.toString());
         }
@@ -255,7 +253,7 @@ public class LocalFileStorage implements FileStorage {
             }
         }
 
-        if (inputStream != null) {
+        if (inputStream!=null) {
             return inputStream;
         } else {
             throw new FileStorageException(FileStorageException.Type.FILE_NOT_FOUND, reference.toString());
@@ -265,7 +263,7 @@ public class LocalFileStorage implements FileStorage {
     @Override
     public void removeFile(FileRef reference) {
         Path[] roots = getStorageRoots();
-        if (roots.length == 0) {
+        if (roots.length==0) {
             log.error("No storage directories defined");
             return;
         }
@@ -299,7 +297,7 @@ public class LocalFileStorage implements FileStorage {
 
     protected Path createDateDirPath() {
         Calendar cal = Calendar.getInstance();
-        cal.setTime(timeSource.currentTimestamp());
+        cal.setTime(new Date());
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
         int day = cal.get(Calendar.DAY_OF_MONTH);
@@ -330,7 +328,7 @@ public class LocalFileStorage implements FileStorage {
     }
 
     protected void checkStorageDefined(Path[] roots, String fileName) {
-        if (roots.length == 0) {
+        if (roots.length==0) {
             log.error("No storage directories defined");
             throw new FileStorageException(FileStorageException.Type.STORAGE_INACCESSIBLE, fileName);
         }

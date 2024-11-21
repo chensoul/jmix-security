@@ -86,7 +86,7 @@ public class FileRef implements Serializable {
      * Returns parameters.
      */
     public Map<String, String> getParameters() {
-        if (parameters == null) {
+        if (parameters==null) {
             return Collections.emptyMap();
         } else {
             return Collections.unmodifiableMap(parameters);
@@ -97,7 +97,7 @@ public class FileRef implements Serializable {
      * Add a parameter.
      */
     public void addParameter(String key, String value) {
-        if (parameters == null) {
+        if (parameters==null) {
             parameters = new LinkedHashMap<>();
         }
         parameters.put(key, value);
@@ -121,7 +121,7 @@ public class FileRef implements Serializable {
         }
         String[] params = query.split("&");
         String[] nameParamPair = params[0].split("=", -1);
-        if (nameParamPair.length != 2) {
+        if (nameParamPair.length!=2) {
             throw new IllegalArgumentException("Cannot convert " + fileRefString + " to FileRef");
         }
         String fileName = URLEncodeUtils.decodeUtf8(nameParamPair[1]);
@@ -129,7 +129,7 @@ public class FileRef implements Serializable {
             Map<String, String> paramsMap = new LinkedHashMap<>();
             for (int i = 1; i < params.length; i++) {
                 String[] paramPair = params[i].split("=", -1);
-                if (paramPair.length != 2) {
+                if (paramPair.length!=2) {
                     throw new IllegalArgumentException("Cannot convert " + fileRefString + " to FileRef");
                 }
                 paramsMap.put(paramPair[0], URLEncodeUtils.decodeUtf8(paramPair[1]));
@@ -147,7 +147,7 @@ public class FileRef implements Serializable {
                 .append(path)
                 .append("?name=")
                 .append(URLEncodeUtils.encodeUtf8(fileName));
-        if (parameters != null) {
+        if (parameters!=null) {
             parameters.forEach((key, value) ->
                     uriStringBuilder.append("&").append(key).append("=").append(URLEncodeUtils.encodeUtf8(value)));
         }
@@ -167,8 +167,8 @@ public class FileRef implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this==o) return true;
+        if (o==null || getClass()!=o.getClass()) return false;
         FileRef fileRef = (FileRef) o;
         return Objects.equals(storageName, fileRef.storageName) &&
                 Objects.equals(path, fileRef.path);
