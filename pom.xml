@@ -34,5 +34,7 @@
         <module>oidc</module>
         <module>oidc-starter</module>
         <module>test-sample</module>
+        <module>email</module>
+        <module>email-starter</module>
     </modules>
 </project>

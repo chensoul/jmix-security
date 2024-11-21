@@ -13,4 +13,5 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
  * @see io.jmix.oidc.usermapper.OidcUserMapper
  */
 public interface JmixOidcUser extends OidcUser, JmixUserDetails {
+
 }

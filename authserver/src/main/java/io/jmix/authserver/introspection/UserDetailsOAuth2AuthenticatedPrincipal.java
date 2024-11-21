@@ -17,12 +17,11 @@
 package io.jmix.authserver.introspection;
 
 import io.jmix.security.user.JmixUserDetails;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
-
-import org.springframework.lang.Nullable;
 import java.util.Collection;
 import java.util.Map;
+import org.springframework.lang.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 
 /**
  * Instances of this class are set as authentication principal to the security context when resource server API are
@@ -42,7 +41,6 @@ public class UserDetailsOAuth2AuthenticatedPrincipal implements OAuth2Authentica
         this.authorities = authorities;
     }
 
-    @Override
     public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
         this.authorities = authorities;
     }

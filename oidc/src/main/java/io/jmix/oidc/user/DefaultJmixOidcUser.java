@@ -1,12 +1,11 @@
 package io.jmix.oidc.user;
 
+import java.util.Collection;
+import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * The default implementation of {@link JmixOidcUser} that wraps the {@link OidcUser} provided by the OpenID Connect 1.0
@@ -89,7 +88,6 @@ public class DefaultJmixOidcUser implements JmixOidcUser, HasOidcUserDelegate {
         return delegate.getName();
     }
 
-    @Override
     public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
         this.authorities = authorities;
     }
